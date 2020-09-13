@@ -1,0 +1,42 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: nginxtest
+  labels:
+    app: nginxtest
+spec:
+  type: LoadBalancer
+  selector:
+    app: nginxtest
+  ports:
+  - name: http
+    protocol: TCP
+    port: 80
+  - name: https
+    protocol: TCP
+    port: 443
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nginxtest
+  labels:
+    app: nginxtest
+spec:
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: nginxtest
+  template:
+    metadata:
+      labels:
+        app: nginxtest
+    spec:
+      containers:
+      - name: nginxtest
+        image: nginxtest
+        imagePullPolicy: Never
+        ports:
+        - containerPort: 80
+        - containerPort: 443

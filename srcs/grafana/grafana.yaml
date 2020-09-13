@@ -1,0 +1,47 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: grafana
+  labels:
+    app: grafana
+spec:
+  ports:
+    - port: 3000
+      targetPort: 3000
+      protocol: TCP
+      name: grafana
+  selector:
+    app: grafana
+  type: LoadBalancer
+
+---
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: grafana
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: grafana
+  template:
+    metadata:
+      name: grafana
+      labels:
+        app: grafana
+    spec:
+      containers:
+      - name: grafana
+        image: grafana
+        env:
+        - name: DB
+          value: telegraf
+        - name: DB_USER
+          value: telegraf
+        - name: DB_PASS
+          value: password
+        ports:
+        - name: grafana
+          containerPort: 3000
+        imagePullPolicy: IfNotPresent

@@ -1,0 +1,50 @@
+FROM alpine:latest
+
+ENV USER=www
+ENV DB_NAME=wordpress
+ENV DB_USER=mysql
+ENV DB_PASS=pass
+ENV DB_HOST=mysql
+ENV WORDPRESS_SVC_SERVICE_HOST=http://121.0.0.1.5050
+ENV WORDPRESS_SVC_SERVICE_PORT=http://121.0.0.1.5050
+ENV AUTHOR=aschwere
+# Fix this error
+# nginx: [emerg] open() "/run/nginx/nginx.pid" failed (2: No such file or directory)
+# simply by running:
+RUN mkdir -p /run/nginx
+
+RUN apk update \
+    && apk add wget \
+    && apk add curl \
+    && apk add gettext
+RUN apk add php7-common php7-fpm php7-opcache php7-gd php7-mysqli php7-zlib php7-curl php7-mbstring php7-json php7-session php7-phar php7-cli php7-zip php7-iconv php7-xml php7-imap php7-cgi fcgi php7-pdo php7-pdo_mysql php7-soap php7-xmlrpc php7-posix php7-mcrypt php7-gettext php7-ldap php7-ctype php7-dom
+RUN apk add nginx
+
+RUN adduser -D -g $USER $USER
+RUN mkdir /$USER
+
+COPY wp-config.php /tmp/wp-config.php
+COPY ft_services.jpg /tmp/ft_services.jpg
+COPY nginx.conf /etc/nginx/nginx.conf
+COPY wpinstall.sh /tmp/
+
+RUN curl -O https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar
+RUN chown -R $USER:$USER /var/lib/nginx
+RUN chown -R $USER:$USER /$USER
+
+RUN cp /tmp/ft_services.jpg /$USER/ft_services.jpg
+RUN cp /tmp/wpinstall.sh /$USER/wpinstall.sh
+
+RUN envsubst '${AUTHOR} ${WORDPRESS_SVC_SERVICE_HOST} ${WORDPRESS_SVC_SERVICE_PORT} ${DB_NAME} ${DB_USER} ${DB_PASS} ${DB_HOST}' < /tmp/wp-config.php > /www/wp-config.php
+RUN cp www/wp-config.php /tmp/wp-config.php
+RUN cat /tmp/wp-config.php
+RUN chmod +x wp-cli.phar
+RUN mv wp-cli.phar /usr/local/bin/wp
+
+RUN rm -rf /root/.wp-cli
+RUN chmod +x /$USER/wpinstall.sh
+RUN chmod +x /tmp/wpinstall.sh
+RUN ls /$USER
+EXPOSE 5050
+CMD tail -f /dev/null
+#CMD su -c /tmp/wpinstall.sh - $USER && tail -f /dev/null

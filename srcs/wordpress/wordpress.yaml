@@ -1,0 +1,63 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: wordpress-svc
+  labels:
+    app: wordpress-deployment
+spec:
+  type: LoadBalancer
+  selector:
+    app: wordpress-deployment
+  ports:
+  - name: wordpress
+    port: 5050
+    targetPort: 5050
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: wordpress-pv-claim
+  labels:
+    app: wordpress
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: wordpress-deployment
+  labels:
+    app: wordpress-deployment
+spec:
+  selector:
+    matchLabels:
+      app: wordpress-deployment
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: wordpress-deployment
+    spec:
+      containers:
+      - name: wordpress
+        image: wordpress
+        imagePullPolicy: Never
+        env:
+        - name: DB_HOST
+          value: http://$(MINIKUBE_IP)
+        - name: WORDPRESS_HOST
+          value: http://$(MINIKUBE_IP):5050/
+        ports:
+        - containerPort: 5050
+        volumeMounts:
+        - name: wordpress-persistent-storage
+          mountPath: /www/wordpress
+      volumes:
+      - name: wordpress-persistent-storage
+        persistentVolumeClaim:
+          claimName: wordpress-pv-claim
