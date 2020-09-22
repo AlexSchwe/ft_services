@@ -1,3 +1,39 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: influxdb 
+  labels:
+    app: influxdb
+spec:
+  selector:
+    matchLabels:
+      app: influxdb
+  template:
+    metadata:
+      labels:
+        app: influxdb
+    spec:
+      containers:
+      - name: influxdb
+        image: influxdb
+        imagePullPolicy: Never
+        ports:
+        - containerPort: 80
+        volumeMounts:
+        - name: data
+          mountPath: /var/lib/influxdb
+        livenessProbe:
+          httpGet:
+            path: /ping?verbose=true
+            port: 8086
+          initialDelaySeconds: 60
+          periodSeconds: 20
+          timeoutSeconds: 10
+      volumes:
+      - name: data
+        persistentVolumeClaim:
+          claimName: influxdb
+---
 apiVersion: v1
 kind: Service
 metadata:
@@ -5,80 +41,20 @@ metadata:
 spec:
   type: ClusterIP
   ports:
-  - name: influxdb
-    port: 8086
-    targetPort: 8086
+  - port: 8086
     protocol: TCP
+    name: influx
   selector:
     app: influxdb
-
 ---
-
 apiVersion: v1
-kind: PersistentVolume
+kind: PersistentVolumeClaim
 metadata:
-  name: influxdb-pv-volume
-  labels:
-    type: local
+  name: influxdb
 spec:
-  storageClassName: manual
-  capacity:
-    storage: 1Gi
   accessModes:
-    - ReadWriteOnce
-  hostPath:
-    path: "/mnt/data"
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: 2Gi
 
----
-
-apiVersion: v1  
-kind: PersistentVolumeClaim  
-metadata:  
-  name: influxdb-pv-claim
-  labels:
-    app: influxdb
-spec:  
-  storageClassName: manual
-  accessModes:  
-    - ReadWriteOnce  
-  resources:  
-    requests:  
-      storage: 1Gi
-
----
-
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-    name: influxdb-deployment
-spec:
-  selector:
-    matchLabels:
-      app: influxdb 
-  replicas: 1    
-  template:
-    metadata:
-      labels:
-        app: influxdb
-    spec:
-      containers:
-      - image: influxdb
-        imagePullPolicy: IfNotPresent
-        name: influxdb
-        env:
-        - name: DB
-          value: telegraf
-        - name: DB_USER
-          value: telegraf
-        - name: DB_PASS
-          value: password
-        ports:
-        - containerPort: 8086
-        volumeMounts:
-          - mountPath: /var/lib/influxdb
-            name: influxdb-persistent-storage
-      volumes:
-      - name: influxdb-persistent-storage
-        persistentVolumeClaim:
-          claimName: influxdb-pv-claim
-          

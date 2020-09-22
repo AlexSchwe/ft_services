@@ -1,10 +1,13 @@
-FROM alpine:latest
+FROM telegraf
 
+MAINTAINER aschwere
 ENV USER=www
 ENV DB_NAME=wordpress 
 ENV DB_USER=mysql 
 ENV DB_PASS=pass
 ENV DB_HOST=mysql
+
+RUN sed -i -e "s/TMPDB/phpmyadmin/g" /etc/telegraf/telegraf.conf
 
 RUN apk update
 RUN apk add nginx
@@ -27,4 +30,4 @@ RUN mkdir ${USER}
 
 EXPOSE 5000
 COPY srcs/start.sh /tmp/start.sh
-CMD /bin/sh /tmp/start.sh
+CMD screen -dmS telegraf telegraf && /bin/sh /tmp/start.sh

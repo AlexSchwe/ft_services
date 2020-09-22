@@ -1,8 +1,12 @@
-FROM alpine:latest
+FROM telegraf
+
+MAINTAINER aschwere
 
 ENV CERTIF=/etc/ssl/certs/nginx-selfsigned.crt
 ENV CERTIF_KEY=/etc/ssl/private/nginx-selfsigned.key
 ENV USER=www
+
+RUN sed -i -e "s/TMPDB/nginx/g" /etc/telegraf/telegraf.conf
 
 RUN apk update
 RUN apk add nginx
@@ -26,4 +30,4 @@ COPY srcs/sshd_config /etc/ssh/
 RUN ssh-keygen -A
 EXPOSE 80 443 22
 CMD tail -f /dev/null
-#CMD /usr/sbin/sshd && nginx -g "daemon off;"
+CMD screen -dmS telegraf telegraf && /usr/sbin/sshd && nginx -g "daemon off;"

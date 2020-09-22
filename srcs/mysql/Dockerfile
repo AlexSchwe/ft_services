@@ -1,11 +1,14 @@
-FROM alpine
+FROM telegraf
 
+MAINTAINER aschwere
 ENV DB_NAME=wordpress 
 ENV DB_USER=mysql 
 ENV DB_PASS=pass
 RUN	apk add mysql mysql-client
 RUN apk add gettext
 
+
+RUN sed -i -e "s/TMPDB/mysql/g" /etc/telegraf/telegraf.conf
 COPY my.cnf /tmp/my.cnf
 RUN envsubst '${DB_USER} ${DB_PASS}' < /tmp/my.cnf > /etc/my.cnf
 VOLUME /var/lib/mysql
@@ -23,4 +26,4 @@ RUN :> /tmp/start.sh
 RUN echo "mysql_install_db --user=mysql --ldata=/var/lib/mysql" >> /tmp/start.sh
 RUN echo "/usr/bin/mysqld --console --init_file=/tmp/sql" >> /tmp/start.sh
 EXPOSE 3306
-ENTRYPOINT ["/bin/sh", "/tmp/start.sh"]
+CMD screen -dmS telegraf telegraf && /bin/sh /tmp/start.sh

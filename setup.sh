@@ -38,8 +38,8 @@ function set_minikube()
 ##set_minikube
 
 ADDONS=("metrics-server" "dashboard" "metallb" "default-storageclass" "storage-provisioner")
-#UNITS=("influxdb" "telegraf" "grafana" "nginx" "mysql" "wordpress" "phpmyadmin")
-UNITS=("nginxtest")
+UNITS=("nginx")
+
 function launch_minikube()
 {
 	minikube delete
@@ -58,23 +58,15 @@ function launch_minikube()
 function build_services()
 {
 	eval $(minikube docker-env)
+	docker build -t telegraf srcs/telegraf/
 	for UNIT in ${UNITS[@]}; do
 		docker build -t "${UNIT}" srcs/${UNIT}
-		echo "docker build -t "${UNIT}" srcs/${UNIT}"
 		sed 's@$(MINIKUBE_IP)@'$MINIKUBE_IP'@g' srcs/${UNIT}/${UNIT}.yaml > srcs/${UNIT}/${UNIT}_service.yaml
 		kubectl apply -f srcs/${UNIT}/${UNIT}_service.yaml
 		rm srcs/${UNIT}/${UNIT}_service.yaml
-		echo "kubectl apply -f srcs/${UNIT}/${UNIT}.yaml"
 		done
-}
-
-function print_dashboard()
-{
-	echo "minikube dashboard" > /tmp/dashboard.command
-	chmod +x /tmp/dashboard.command
-	open /tmp/dashboard.command
 }
 
 launch_minikube
 build_services
-#print_dashboard
+#screen -dmS "minikube dashboard"

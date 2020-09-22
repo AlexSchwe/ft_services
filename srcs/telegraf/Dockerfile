@@ -1,18 +1,6 @@
-FROM	alpine:latest
-
-RUN	apk add curl ; \
-	apk add openrc gettext
-
-RUN	mkdir /etc/telegraf 
-
-RUN	wget https://dl.influxdata.com/telegraf/releases/telegraf-1.14.0-static_linux_amd64.tar.gz ; \
-	tar -C . -xvf telegraf-1.14.0-static_linux_amd64.tar.gz ; \
-	chmod +x telegraf/* ; \
-        cp telegraf/telegraf /usr/bin/ ; \
-        rm -rf *.tar.gz* telegraf
-
-COPY telegraf.conf ./
-
-EXPOSE	8125
-
-CMD	envsubst '${MINIKUBE_IP} ${DB} $(DB_USER} ${DB_PASS}' < telegraf.conf > etc/telegraf/telegraf.conf && /usr/bin/telegraf
+FROM alpine:latest
+MAINTAINER aschwere
+RUN echo "@testing http://nl.alpinelinux.org/alpine/edge/testing" >> /etc/apk/repositories
+RUN apk update && apk add screen telegraf@testing
+RUN mkdir -p /etc/telegraf  
+COPY srcs/telegraf.conf /etc/telegraf/telegraf.conf

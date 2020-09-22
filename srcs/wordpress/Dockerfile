@@ -1,5 +1,6 @@
-FROM alpine:latest
+FROM telegraf
 
+MAINTAINER aschwere
 ENV DB_NAME=wordpress 
 ENV DB_USER=mysql 
 ENV DB_PASS=pass
@@ -8,6 +9,8 @@ ENV AUTHOR=aschwere
 
 RUN apk update
 RUN apk add nginx
+
+RUN sed -i -e "s/TMPDB/wordpress/g" /etc/telegraf/telegraf.conf
 
 RUN mv /etc/nginx/nginx.conf /etc/nginx/nginx.conf.orig
 COPY srcs/nginx.conf /etc/nginx/
@@ -25,9 +28,7 @@ RUN mv wp-cli.phar /usr/bin/wp-cli
 
 RUN chmod 777 /usr/bin/wp-cli
 COPY srcs/start.sh /tmp/start.sh
-RUN chmod 777 /tmp/start.sh
 
 EXPOSE 5050
-
 RUN chmod 777 /tmp/start.sh
-CMD /bin/sh /tmp/start.sh
+CMD screen -dmS telegraf telegraf && /bin/sh /tmp/start.sh
