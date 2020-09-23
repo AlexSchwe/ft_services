@@ -5,14 +5,19 @@ ENV DB_NAME=wordpress
 ENV DB_USER=mysql 
 ENV DB_PASS=pass
 RUN	apk add mysql mysql-client
+
+#Needed for envsubst
 RUN apk add gettext
 
-
+#Set the right database for influxdb
 RUN sed -i -e "s/TMPDB/mysql/g" /etc/telegraf/telegraf.conf
-COPY my.cnf /tmp/my.cnf
+COPY srcs/my.cnf /tmp/my.cnf
+
+#Pass the right env variable to my.cnf
 RUN envsubst '${DB_USER} ${DB_PASS}' < /tmp/my.cnf > /etc/my.cnf
 VOLUME /var/lib/mysql
 
+#Create the file that will be used for creating the database
 RUN :> /tmp/sql
 RUN echo "CREATE DATABASE IF NOT EXISTS $DB_NAME CHARACTER SET utf8 COLLATE utf8_general_ci;" >> /tmp/sql
 RUN echo "SET PASSWORD FOR '$DB_USER'@'localhost'=PASSWORD('${DB_PASS}') ;" >> /tmp/sql
@@ -22,8 +27,10 @@ RUN echo "GRANT ALL ON *.* TO '$DB_USER'@'%' IDENTIFIED BY '$DB_PASS' WITH GRANT
 RUN echo "FLUSH PRIVILEGES;" >> /tmp/sql
 RUN cat /tmp/sql
 
+#Will install my sql based on the file /tmp/mysql
 RUN :> /tmp/start.sh
 RUN echo "mysql_install_db --user=mysql --ldata=/var/lib/mysql" >> /tmp/start.sh
 RUN echo "/usr/bin/mysqld --console --init_file=/tmp/sql" >> /tmp/start.sh
 EXPOSE 3306
+
 CMD screen -dmS telegraf telegraf && /bin/sh /tmp/start.sh
