@@ -11,10 +11,13 @@ spec:
   ports:
   - name: ftp-data
     port: 20
+    targetPort: 20
   - name: ftp-connection
     port: 21
+    targetPort: 21
   - name: pftp-data-0
     port: 30000
+    targetPort: 3000
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -41,3 +44,8 @@ spec:
         - containerPort: 20
         - containerPort: 21
         - containerPort: 30000
+        livenessProbe:
+          tcpSocket:
+            port: 21
+          initialDelaySeconds: 60
+          periodSeconds: 20

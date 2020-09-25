@@ -10,10 +10,9 @@ spec:
     app: phpmyadmin-deployment
   ports:
   - port: 5000
+    protocol: TCP
     targetPort: 5000
-
 ---
-
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -34,6 +33,14 @@ spec:
         imagePullPolicy: Never
         ports:
         - containerPort: 5000
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 5000
+            scheme: HTTP
+          initialDelaySeconds: 60
+          periodSeconds: 20
+          timeoutSeconds: 10
         volumeMounts:
         - name: phpmyadmin-persistent-storage
           mountPath: /var/www/localhost/htdocs
@@ -41,7 +48,6 @@ spec:
       - name: phpmyadmin-persistent-storage
         persistentVolumeClaim:
           claimName: phpmyadmin-pv-claim
-
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim

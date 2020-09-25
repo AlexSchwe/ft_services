@@ -54,6 +54,14 @@ spec:
           value: http://$(MINIKUBE_IP):5050/
         ports:
         - containerPort: 5050
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 5050
+            scheme: HTTP
+          initialDelaySeconds: 60
+          periodSeconds: 20
+          timeoutSeconds: 10
         volumeMounts:
         - name: wordpress-persistent-storage
           mountPath: /www/wordpress

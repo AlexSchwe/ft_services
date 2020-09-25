@@ -1,5 +1,4 @@
-ADDONS=("metrics-server" "dashboard" "metallb" "default-storageclass" "storage-provisioner")
-#UNITS=("nginx" "ftps" "mysql" "wordpress" "phpmyadmin" "influxdb" "grafana")
+ADDONS=("metrics-server" "dashboard" "default-storageclass" "storage-provisioner")
 UNITS=("nginx" "ftps" "mysql" "wordpress" "phpmyadmin" "influxdb" "grafana")
 
 function launch_minikube()
@@ -21,16 +20,28 @@ function launch_minikube()
 
 	#params are to be set according to your hardware
 	minikube start --vm-driver=$VMDRIVER --cpus=$VMCORE  --memory=$MEMORY
-#	minikube start --vm-driver=docker
 
 	for ADDON in ${ADDONS[@]}; do
 		minikube addons enable "${ADDON}"
 		done
 
 	#Installing metallb
-	kubectl apply -f metallb.yaml
+	kubectl apply -f https://raw.githubusercontent.com/metallb/metallb/v0.9.3/manifests/namespace.yaml
 	kubectl apply -f https://raw.githubusercontent.com/metallb/metallb/v0.9.3/manifests/metallb.yaml
 	kubectl create secret generic -n metallb-system memberlist --from-literal=secretkey="$(openssl rand -base64 128)"
+
+	if [ $VMDRIVER = 'docker' ]
+	then
+		IP=`docker inspect minikube --format="{{range .NetworkSettings.Networks}}{{.Gateway}}{{end}}"`
+	else
+		IP=`minikube ip`
+	fi
+
+	IP=`echo $IP|awk -F '.' '{print $1"."$2"."$3"."128}'`
+	cp srcs/metallb.yaml srcs/metallb_tmp.yaml
+	sed -ie "s/TMPIP/$IP/g" srcs/metallb_tmp.yaml
+	kubectl apply -f srcs/metallb_tmp.yaml
+	rm srcs/metallb_tmp.yaml
 
 	export MINIKUBE_IP=$(minikube ip)
 }
