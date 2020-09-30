@@ -13,14 +13,17 @@ spec:
     protocol: TCP
     port: 80
     targetPort: 80
+    nodePort: 80
   - name: https
     protocol: TCP
     port: 443
     targetPort: 443
+    nodePort: 443
   - name: ssh
     protocol: TCP
     port: 22
     targetPort: 22
+    nodePort: 22
 ---
 apiVersion: apps/v1
 kind: Deployment

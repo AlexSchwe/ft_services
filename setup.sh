@@ -19,7 +19,8 @@ function launch_minikube()
 	fi
 
 	#params are to be set according to your hardware
-	minikube start --vm-driver=$VMDRIVER --cpus=$VMCORE  --memory=$MEMORY
+	minikube start --extra-config=apiserver.service-node-port-range=1-65535 --vm-driver=$VMDRIVER --cpus=$VMCORE  --memory=$MEMORY
+
 
 	for ADDON in ${ADDONS[@]}; do
 		minikube addons enable "${ADDON}"
@@ -66,4 +67,8 @@ function build_services()
 
 launch_minikube
 build_services
+
+echo "ssh www@NGINX_IP \n password:www"
+echo "phpmyadmin mysql:pass"
+echo "grafana admin:admin"
 screen -dmS "minikube dashboard"

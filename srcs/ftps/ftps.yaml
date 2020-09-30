@@ -12,12 +12,15 @@ spec:
   - name: ftp-data
     port: 20
     targetPort: 20
+    nodePort: 20
   - name: ftp-connection
     port: 21
     targetPort: 21
+    nodePort: 21
   - name: pftp-data-0
     port: 30000
     targetPort: 3000
+    nodePort: 3000
 ---
 apiVersion: apps/v1
 kind: Deployment

@@ -24,6 +24,8 @@ RUN sed -i -e 's@CERTIF@'$CERTIF'@' /etc/nginx/nginx.conf
 
 RUN mkdir -p /run/nginx
 RUN adduser -D -g www www
+RUN echo "www:www" | chpasswd
+
 
 RUN mkdir /www
 COPY srcs/index.html /www/
