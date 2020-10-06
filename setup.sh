@@ -63,6 +63,7 @@ function build_services()
 		#destroy the yaml file with Minikube_ip
 		rm srcs/${UNIT}/${UNIT}_service.yaml
 		done
+	screen -dmS t1 ./srcs/setup_ftps.sh
 }
 
 launch_minikube

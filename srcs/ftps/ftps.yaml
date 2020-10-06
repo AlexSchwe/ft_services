@@ -1,39 +1,13 @@
-apiVersion: v1
-kind: Service
-metadata:
-  name: ftps
-  labels:
-    app: ftps
-spec:
-  type: LoadBalancer
-  selector:
-    app: ftps
-  ports:
-  - name: ftp-data
-    port: 20
-    targetPort: 20
-    nodePort: 20
-  - name: ftp-connection
-    port: 21
-    targetPort: 21
-    nodePort: 21
-  - name: pftp-data-0
-    port: 30000
-    targetPort: 3000
-    nodePort: 3000
----
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: ftps
+  name: ftps 
   labels:
     app: ftps
 spec:
   selector:
     matchLabels:
       app: ftps
-  strategy:
-    type: Recreate
   template:
     metadata:
       labels:
@@ -44,7 +18,6 @@ spec:
         image: ftps
         imagePullPolicy: Never
         ports:
-        - containerPort: 20
         - containerPort: 21
         - containerPort: 30000
         livenessProbe:
@@ -52,3 +25,22 @@ spec:
             port: 21
           initialDelaySeconds: 60
           periodSeconds: 20
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ftps
+spec:
+  type: LoadBalancer
+  ports:
+  - port: 21
+    targetPort: 21
+    protocol: TCP
+    nodePort: 21
+    name: 21-ftps
+  - port: 30000
+    nodePort: 30000
+    protocol: TCP
+    name: 30000-ftps
+  selector:
+    app: ftps

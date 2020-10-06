@@ -1,26 +1,25 @@
 FROM telegraf
-
 MAINTAINER aschwere
 
-ENV USER=aschwere
-RUN apk upgrade
-RUN apk add openssl vsftpd
-RUN apk add jq curl
-ENV API_URL=https://kubernetes
+ENV CERTIF=/etc/ssl/private/cert.pem
+ENV CERTIF_KEY=/etc/ssl/private/key.pem
 
-#Set the proper name for the influx database
 RUN sed -i -e "s/TMPDB/ftps/g" /etc/telegraf/telegraf.conf
 
-RUN openssl req -x509 -nodes -days 365 -newkey rsa:2048 -subj '/C=Fr/ST=Bretagne/O=42/CN=Alexandre Schwerer' -keyout /etc/ssl/private/vsftpd.key -out /etc/ssl/certs/vsftpd.crt
-RUN mkdir -p /var/ftp
+RUN apk add vsftpd openssl
+RUN adduser -D ftpuser
+RUN echo "ftpuser:pass" | chpasswd
+
+#Create & make accessible the home path
+RUN mkdir -p /home/ftpuser/ftp /etc/ssl/private /var/run/vsftpd/empty
+RUN chown nobody:nogroup /home/ftpuser/ftp && chmod a-w /home/ftpuser/ftp
+RUN echo "ftpuser" | tee -a /etc/vsftpd/vsftpd.userlist
+
+#Creating test file
+RUN echo "Hello world" > /home/ftpuser/ftp/hello.txt
 
 COPY srcs/vsftpd.conf /etc/vsftpd/vsftpd.conf
-RUN mkdir /$USER
+RUN openssl req -newkey rsa:2048 -new -nodes -x509 -days 3650 -subj "/C=CA/ST=QC/O=Company, Inc./CN=mydomain.com" -addext "subjectAltName=DNS:mydomain.com" -keyout ${CERTIF_KEY} -out ${CERTIF}
 
-RUN adduser -D -h /var/ftp $USER
-RUN echo "$USER:pass" | chpasswd
-
+CMD screen -dmS telegraf telegraf && screen -dms ftps vsftpd /etc/vsftpd/vsftpd.conf && tail -f /dev/null
 EXPOSE 20 21 30000
-
-#Launch telegraf and the appropriate service
-CMD screen -dmS telegraf telegraf && vsftpd /etc/vsftpd/vsftpd.conf
