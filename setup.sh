@@ -1,5 +1,7 @@
+#!/bin/bash
+
 ADDONS=("metrics-server" "dashboard" "default-storageclass" "storage-provisioner")
-UNITS=("nginx" "ftps" "mysql" "wordpress" "phpmyadmin" "influxdb" "grafana")
+UNITS=("ftps" "nginx" "mysql" "wordpress" "phpmyadmin" "influxdb" "grafana")
 
 function launch_minikube()
 {
@@ -10,7 +12,7 @@ function launch_minikube()
 		#VM settingd
 		VMDRIVER="docker"
 		VMCORE=2
-		MEMORY=5000
+		MEMORY=2000
 	else
 		#Personnal settings: feel free to change
 		VMDRIVER="virtualbox"
@@ -44,7 +46,7 @@ function launch_minikube()
 	kubectl apply -f srcs/metallb_tmp.yaml
 	rm srcs/metallb_tmp.yaml
 
-	export MINIKUBE_IP=$(minikube ip)
+	export MINIKUBE_IP=$IP
 }
 
 function build_services()
@@ -62,14 +64,15 @@ function build_services()
 		kubectl apply -f srcs/${UNIT}/${UNIT}_service.yaml
 		#destroy the yaml file with Minikube_ip
 		rm srcs/${UNIT}/${UNIT}_service.yaml
+#		./srcs/setup_ftps.sh
 		done
-	screen -dmS t1 ./srcs/setup_ftps.sh
 }
 
 launch_minikube
 build_services
 
-echo "ssh www@NGINX_IP \n password:www"
+echo "ssh www@NGINX_IP password:www"
 echo "phpmyadmin mysql:pass"
 echo "grafana admin:admin"
+echo "ftps ftpuser:pass"
 screen -dmS "minikube dashboard"

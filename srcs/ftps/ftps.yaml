@@ -25,6 +25,9 @@ spec:
             port: 21
           initialDelaySeconds: 60
           periodSeconds: 20
+        env:
+        - name: MINIKUBE_IP
+          value: $(MINIKUBE_IP)
 ---
 apiVersion: v1
 kind: Service

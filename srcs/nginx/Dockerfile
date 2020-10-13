@@ -35,7 +35,7 @@ RUN chmod -R 755 /www/
 #Setup ssh connection
 RUN apk add openssh
 COPY srcs/sshd_config /etc/ssh/
-RUN ssh-keygen -A
+RUN /usr/bin/ssh-keygen -A
 
 EXPOSE 80 443 22
 
