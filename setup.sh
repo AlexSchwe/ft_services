@@ -1,7 +1,8 @@
 #!/bin/bash
 
 ADDONS=("metrics-server" "dashboard" "default-storageclass" "storage-provisioner")
-UNITS=("ftps" "nginx" "mysql" "wordpress" "phpmyadmin" "influxdb" "grafana")
+#UNITS=("ftps" "nginx" "mysql" "wordpress" "phpmyadmin" "influxdb" "grafana")
+UNITS=("nginx" "mysql" "wordpress" "phpmyadmin")
 
 function launch_minikube()
 {
@@ -35,18 +36,18 @@ function launch_minikube()
 
 	if [ $VMDRIVER = 'docker' ]
 	then
-		IP=`docker inspect minikube --format="{{range .NetworkSettings.Networks}}{{.Gateway}}{{end}}"`
+		MINIKUBE_IP=`docker inspect minikube --format="{{range .NetworkSettings.Networks}}{{.Gateway}}{{end}}"`
 	else
-		IP=`minikube ip`
+		MINIKUBE_IP=`minikube ip`
 	fi
 
-	IP=`echo $IP|awk -F '.' '{print $1"."$2"."$3"."128}'`
+	IP=`echo $MINIKUBE_IP|awk -F '.' '{print $1"."$2"."$3"."128}'`
 	cp srcs/metallb.yaml srcs/metallb_tmp.yaml
 	sed -ie "s/TMPIP/$IP/g" srcs/metallb_tmp.yaml
 	kubectl apply -f srcs/metallb_tmp.yaml
-	rm srcs/metallb_tmp.yaml
+#	rm srcs/metallb_tmp.yaml
 
-	export MINIKUBE_IP=$IP
+	export MINIKUBE_IP
 }
 
 function build_services()
@@ -64,7 +65,6 @@ function build_services()
 		kubectl apply -f srcs/${UNIT}/${UNIT}_service.yaml
 		#destroy the yaml file with Minikube_ip
 		rm srcs/${UNIT}/${UNIT}_service.yaml
-#		./srcs/setup_ftps.sh
 		done
 }
 
@@ -75,4 +75,5 @@ echo "ssh www@NGINX_IP password:www"
 echo "phpmyadmin mysql:pass"
 echo "grafana admin:admin"
 echo "ftps ftpuser:pass"
+echo "curl -k --head https://$IP/wordpress"
 screen -dmS "minikube dashboard"
