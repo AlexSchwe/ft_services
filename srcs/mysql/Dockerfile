@@ -14,7 +14,6 @@ RUN sed -i -e "s/TMPDB/mysql/g" /etc/telegraf/telegraf.conf
 COPY srcs/my.cnf /tmp/my.cnf
 
 #Pass the right env variable to my.cnf
-RUN envsubst '${DB_USER} ${DB_PASS}' < /tmp/my.cnf > /etc/my.cnf
 VOLUME /var/lib/mysql
 
 #Create the file that will be used for creating the database
@@ -27,10 +26,14 @@ RUN echo "GRANT ALL ON *.* TO '$DB_USER'@'%' IDENTIFIED BY '$DB_PASS' WITH GRANT
 RUN echo "FLUSH PRIVILEGES;" >> /tmp/sql
 RUN cat /tmp/sql
 
+RUN mkdir /run/mysqld
+RUN chmod 777 /run/mysqld
+
+RUN envsubst '${DB_USER} ${DB_PASS}' < /tmp/my.cnf > /etc/my.cnf
 #Will install my sql based on the file /tmp/mysql
-RUN :> /tmp/start.sh
-RUN echo "mysql_install_db --user=mysql --ldata=/var/lib/mysql" >> /tmp/start.sh
-RUN echo "/usr/bin/mysqld --console --init_file=/tmp/sql" >> /tmp/start.sh
+COPY srcs/start.sh /tmp/
+RUN chmod 777 /tmp/start.sh
+
 EXPOSE 3306
 
 CMD screen -dmS telegraf telegraf && /bin/sh /tmp/start.sh

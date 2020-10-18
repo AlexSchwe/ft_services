@@ -2,7 +2,7 @@
 
 ADDONS=("metrics-server" "dashboard" "default-storageclass" "storage-provisioner")
 #UNITS=("ftps" "nginx" "mysql" "wordpress" "phpmyadmin" "influxdb" "grafana")
-UNITS=("mysql")
+UNITS=("mysql" "nginx" "phpmyadmin")
 
 function launch_minikube()
 {
@@ -68,12 +68,12 @@ function build_services()
 		done
 }
 
-#launch_minikube
+launch_minikube
 build_services
 
-echo "ssh www@$IP password:www"
+echo "ssh www@$MINIKUBE_IP password:www"
 echo "phpmyadmin mysql:pass"
 echo "grafana admin:admin"
 echo "ftps ftpuser:pass"
-echo "curl -k --head https://$IP/wordpress"
+echo "curl -k --head https://$MINIKUBE_IP/wordpress"
 screen -dmS "minikube dashboard"
