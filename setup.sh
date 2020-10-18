@@ -2,7 +2,7 @@
 
 ADDONS=("metrics-server" "dashboard" "default-storageclass" "storage-provisioner")
 #UNITS=("ftps" "nginx" "mysql" "wordpress" "phpmyadmin" "influxdb" "grafana")
-UNITS=("nginx" "mysql" "wordpress" "phpmyadmin")
+UNITS=("mysql")
 
 function launch_minikube()
 {
@@ -41,11 +41,11 @@ function launch_minikube()
 		MINIKUBE_IP=`minikube ip`
 	fi
 
-	IP=`echo $MINIKUBE_IP|awk -F '.' '{print $1"."$2"."$3"."128}'`
+#	IP=`echo $MINIKUBE_IP|awk -F '.' '{print $1"."$2"."$3"."128}'`
 	cp srcs/metallb.yaml srcs/metallb_tmp.yaml
-	sed -ie "s/TMPIP/$IP/g" srcs/metallb_tmp.yaml
+	sed -ie "s/TMPIP/$MINIKUBE_IP/g" srcs/metallb_tmp.yaml
 	kubectl apply -f srcs/metallb_tmp.yaml
-#	rm srcs/metallb_tmp.yaml
+	rm srcs/metallb_tmp.yaml
 
 	export MINIKUBE_IP
 }
@@ -68,10 +68,10 @@ function build_services()
 		done
 }
 
-launch_minikube
+#launch_minikube
 build_services
 
-echo "ssh www@NGINX_IP password:www"
+echo "ssh www@$IP password:www"
 echo "phpmyadmin mysql:pass"
 echo "grafana admin:admin"
 echo "ftps ftpuser:pass"

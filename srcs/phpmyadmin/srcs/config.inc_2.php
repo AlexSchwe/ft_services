@@ -24,6 +24,5 @@ $cfg['Servers'][$i]['password'] = '$DB_PASS';
 /* Directories for saving/loading files from server */
 $cfg['UploadDir'] = '';
 $cfg['SaveDir'] = '';
-$cfg['PmaAbsoluteUri'] = './';
 
 $cfg['TempDir'] = 'tmp';

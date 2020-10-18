@@ -15,12 +15,12 @@ RUN apk add openssl
 
 RUN mv /etc/nginx/nginx.conf /etc/nginx/nginx.conf.orig
 COPY srcs/nginx.conf /etc/nginx/
+COPY srcs/proxy_params /etc/nginx/
 
 #Create certifs
 RUN openssl req -x509 -nodes -days 365 -subj "/C=CA/ST=QC/O=Company, Inc./CN=mydomain.com" -addext "subjectAltName=DNS:mydomain.com" -newkey rsa:2048 -keyout ${CERTIF_KEY} -out ${CERTIF}
 RUN sed -i -e 's@CERTIF_KEY@'$CERTIF_KEY'@' /etc/nginx/nginx.conf
 RUN sed -i -e 's@CERTIF@'$CERTIF'@' /etc/nginx/nginx.conf
-
 
 RUN mkdir -p /run/nginx
 RUN adduser -D -g www www
@@ -39,4 +39,8 @@ RUN /usr/bin/ssh-keygen -A
 
 EXPOSE 80 443 22
 
-CMD screen -dmS telegraf telegraf && /usr/sbin/sshd && nginx -g "daemon off;"
+COPY srcs/start.sh /tmp/
+RUN chmod 777 /tmp/start.sh
+
+
+CMD /bin/sh /tmp/start.sh && tail -f /dev/null
