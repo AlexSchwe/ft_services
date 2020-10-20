@@ -5,11 +5,11 @@ metadata:
   annotations:
     metallb.universe.tf/allow-shared-ip: "my_ip"
   labels:
-    app: phpmyadmin-deployment
+    app: phpmyadmin
 spec:
   type: LoadBalancer
   selector:
-    app: phpmyadmin-deployment
+    app: phpmyadmin
   ports:
   - port: 5000
     protocol: TCP
@@ -19,16 +19,16 @@ spec:
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: phpmyadmin-deployment
+  name: phpmyadmin
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: phpmyadmin-deployment
+      app: phpmyadmin
   template:
     metadata:
       labels:
-        app: phpmyadmin-deployment
+        app: phpmyadmin
     spec:
       containers:
       - name: phpmyadmin
@@ -57,7 +57,7 @@ kind: PersistentVolumeClaim
 metadata:
   name: phpmyadmin-pv-claim
   labels:
-    app: phpmyadmin-deployment
+    app: phpmyadmin
 spec:
   accessModes:
     - ReadWriteOnce

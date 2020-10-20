@@ -1,8 +1,7 @@
 #!/bin/bash
 
 ADDONS=("metrics-server" "dashboard" "default-storageclass" "storage-provisioner")
-#UNITS=("ftps" "nginx" "mysql" "wordpress" "phpmyadmin" "influxdb" "grafana")
-UNITS=("mysql" "nginx" "phpmyadmin")
+UNITS=("nginx" "ftps" "mysql" "wordpress" "phpmyadmin" "influxdb" "grafana")
 
 function launch_minikube()
 {
