@@ -1,7 +1,7 @@
 #!/bin/bash
 
 ADDONS=("metrics-server" "dashboard" "default-storageclass" "storage-provisioner")
-UNITS=("nginx" "ftps" "mysql" "phpmyadmin")
+UNITS=("nginx" "ftps" "influxdb" "mysql" "wordpress" "phpmyadmin" "grafana")
 
 function launch_minikube()
 {
@@ -12,7 +12,7 @@ function launch_minikube()
 		#VM settingd
 		VMDRIVER="docker"
 		VMCORE=2
-		MEMORY=2000
+		MEMORY=5000
 	else
 		#Personnal settings: feel free to change
 		VMDRIVER="virtualbox"
@@ -40,13 +40,13 @@ function launch_minikube()
 		MINIKUBE_IP=`minikube ip`
 	fi
 
-#	IP=`echo $MINIKUBE_IP|awk -F '.' '{print $1"."$2"."$3"."128}'`
+	IP=`echo $MINIKUBE_IP|awk -F '.' '{print $1"."$2"."$3"."128}'`
 	cp srcs/metallb.yaml srcs/metallb_tmp.yaml
-	sed -ie "s/TMPIP/$MINIKUBE_IP/g" srcs/metallb_tmp.yaml
+	sed -ie "s/TMPIP/$IP/g" srcs/metallb_tmp.yaml
 	kubectl apply -f srcs/metallb_tmp.yaml
 	rm srcs/metallb_tmp.yaml
 
-	export MINIKUBE_IP
+	export IP
 }
 
 function build_services()
@@ -60,7 +60,7 @@ function build_services()
 	for UNIT in ${UNITS[@]}; do
 		docker build -t "${UNIT}" srcs/${UNIT}
 		#pass minikube ip when needed as ENV variable
-		sed 's@$(MINIKUBE_IP)@'$MINIKUBE_IP'@g' srcs/${UNIT}/${UNIT}.yaml > srcs/${UNIT}/${UNIT}_service.yaml
+		sed 's@$(MINIKUBE_IP)@'$IP'@g' srcs/${UNIT}/${UNIT}.yaml > srcs/${UNIT}/${UNIT}_service.yaml
 		kubectl apply -f srcs/${UNIT}/${UNIT}_service.yaml
 		#destroy the yaml file with Minikube_ip
 		rm srcs/${UNIT}/${UNIT}_service.yaml
@@ -70,8 +70,10 @@ function build_services()
 launch_minikube
 build_services
 
-echo "ssh www@$MINIKUBE_IP password:www"
+echo "ssh www@$IP password:www"
 echo "phpmyadmin mysql:pass"
 echo "grafana admin:admin"
 echo "ftps ftpuser:pass"
-echo "curl -k --head https://$MINIKUBE_IP/wordpress"
+echo "curl -k --head https://$IP/wordpress"
+echo "sudo apt-get install filezilla"
+
